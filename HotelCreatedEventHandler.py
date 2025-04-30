@@ -3,6 +3,7 @@ import os
 import boto3
 from boto3 import dynamodb
 from elasticsearch import Elasticsearch # pip install elasticsearch
+import traceback
 
 def handler(event, context):
 
@@ -13,6 +14,12 @@ def handler(event, context):
     tableName = os.environ.get("hotelCreatedEventIdsTable")
 
     dynamodb_client = boto3.client('dynamodb')
+
+    try:
+        dynamodb_client.describe_table(TableName=tableName)
+    except dynamodb_client.exceptions.ResourceNotFoundException:
+        raise Exception(f"You must create the table {tableName} in DynamoDB (in AWS).")
+
     response = dynamodb_client.get_item(
         TableName = tableName,
         Key={
